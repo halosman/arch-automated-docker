@@ -1,4 +1,99 @@
 # !/bin/bash
-# Will start a container with the given commands
+# Will start a container with the given commands.
+# Completion Codes:
+#   0 - Successfull Completion
+#   1 - Incorrect Number of Parameters
+#   2 - Can't find container in conf file
+#   3 - Can't find conf file
 
-docker $1
+## 
+# Function print_help
+#    Prints out help for this file
+# Inputs:
+#    - None
+# Outputs:
+#    - None
+##
+function print_help()
+{
+   echo -e "----------------------------------------------------------"
+   echo -e "start-container"
+   echo -e "Description: "
+   echo -e "   Takes a name as argument and searches"
+   echo -e "   /etc/automated-docker.conf for command line parameters"
+   echo -e "Usage: "
+   echo -e "   start-container name"
+   echo -e " "
+   echo -e "   -name   name of docker container in automated-docker.conf"
+   echo -e " "
+   echo -e " "	
+}
+
+##
+# Function get_cmd_args
+#   Returns the command line arguments needed to start the docker image
+# Inputs:
+#    - $1 - Docker Image name contained in conf file
+#    - $2 - conf file location
+# Outputs:
+#    - Nothing if image is not found in conf file
+#    - String of command line arguments to be appended in order to start image
+##
+function get_cmd_args()
+{
+   local search_name="[$1]"
+   local beg_bracket_regex='^\[.*'
+   local found=0
+   local cmd="--name $1"
+
+   while read -r line; do
+      if [[  $line =~ $beg_bracket_regex ]] && [ $found -eq 1 ]; then
+         break
+      elif [ "$line" = "$search_name" ]; then   
+         found=1
+      elif [ $found -eq 1 ]; then
+         cmd="$cmd $line"
+      fi   
+   done <$2
+
+   # if found is 0 here, then we didn't find container
+   if [[ $found -eq 0 ]]; then
+      return
+   fi
+
+   echo "$cmd"
+}
+
+# Needed Variables
+conf_file=/etc/automated-docker.conf
+
+# Check for arguemnts
+if [[ -z $1 ]]; then
+   echo "No parameters detected, please see usage below"
+   print_help
+   exit 1
+elif [[ $# -gt 1 ]]; then
+   echo "Too many parameters, please see usage below"
+   print_help
+   exit 1
+fi
+
+# Check that conf file exists
+if [[ ! -f $conf_file ]]; then
+   echo "Can't find conf file at $conf_file, Exiting!"
+   exit 3
+fi
+
+cmd_args=$(get_cmd_args $1 $conf_file)
+
+if [[ -z $cmd_args ]]; then
+   echo "Could Not Find Container $1, Exiting!"
+   exit 2
+fi
+
+# Start Docker Image
+# echo "docker run $cmd_args"
+docker run $cmd_args
+
+# Clean Up Variables
+unset conf_file
