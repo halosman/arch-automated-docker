@@ -1,0 +1,4 @@
+# !/bin/bash
+# Will start a container with the given commands
+
+docker $1
