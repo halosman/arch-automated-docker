@@ -96,7 +96,7 @@ fi
 
 if [[ -f "$conf_dir/automated-docker@$1.service.template" ]]; then
    envsubst <"$conf_dir/automated-docker@$1.service.template" > /etc/systemd/system/automated-docker@$1.service
-eif [[ -f "$conf_dir/$def_template" ]]; then
+elif [[ -f "$conf_dir/$def_template" ]]; then
    envsubst <"$conf_dir/$def_template" > /etc/systemd/system/automated-docker@$1.service
 else
    echo "ERROR: Cannot Find Template File"
