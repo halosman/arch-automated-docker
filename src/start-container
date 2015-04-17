@@ -5,6 +5,7 @@
 #   1 - Incorrect Number of Parameters
 #   2 - Can't find container in conf file
 #   3 - Can't find conf file
+#   4 - Couldn't find template file
 
 ## 
 # Function print_help
@@ -65,7 +66,9 @@ function get_cmd_args()
 }
 
 # Needed Variables
-conf_file=/etc/automated-docker.conf
+conf_dir=/etc/automated-docker
+conf_file=/etc/automated-docker/automated-docker.conf
+def_template='automated-docker@.service.template'
 
 # Check for arguemnts
 if [[ -z $1 ]]; then
@@ -89,6 +92,15 @@ cmd_args=$(get_cmd_args $1 $conf_file)
 if [[ -z $cmd_args ]]; then
    echo "Could Not Find Container $1, Exiting!"
    exit 2
+fi
+
+if [[ -f "$conf_dir/automated-docker@$1.service.template" ]]; then
+   envsubst <"$conf_dir/automated-docker@$1.service.template" > /etc/systemd/system/automated-docker@$1.service
+eif [[ -f "$conf_dir/$def_template" ]]; then
+   envsubst <"$conf_dir/$def_template" > /etc/systemd/system/automated-docker@$1.service
+else
+   echo "ERROR: Cannot Find Template File"
+   exit 4 
 fi
 
 # Start Docker Image

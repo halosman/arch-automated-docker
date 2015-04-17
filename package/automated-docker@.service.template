@@ -1,0 +1,15 @@
+[Unit]
+Description=Program to automate control of docker containers
+Documentation=http://github.com/halosman/arch-automated-docker
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=notify
+ExecStartPre=/usr/bin/docker ${RUN_ARGS} -d
+ExecStart=/usr/bin/docker logs -f container
+ExecStop=/usr/bin/docker stop %i
+ExecStopPost=/usr/bin/docker stop %i
+
+[Install]
+Also=docker.start
